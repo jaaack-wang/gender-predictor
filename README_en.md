@@ -1,4 +1,4 @@
-[中文ReadMe](https://github.com/jaaack-wang/gender-predicator/blob/main/README_ch.md)
+[中文ReadMe](https://github.com/jaaack-wang/gender-predicator/blob/main/README.md)
 # Description
 Predicting the gender of given Chinese names. Currently, Navie Bayes based method is provided (with over 93% prediction accuracy). 
 Planning to try other algorithms (e.g., logistic regression) later on.
