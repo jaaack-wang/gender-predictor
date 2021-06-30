@@ -71,6 +71,6 @@ which contains over 700k unique full names or over 200k unique first names. You 
 | Laplace | Yes | 93.7% |
 | Laplace | No | 96.2% |
 | Good Turing | Yes | 93.0% |
-| Good Turing  | No | 93.0% |
+| Good Turing  | No | 95.5% |
 
-It appears that Laplace method works better than Good Turing method, especially when the gender undefined names are excluded. 
+It appears that both methods work better when the gender undefined examples are excluded from the test set. Moreover, Laplace method works slightly better than Good Turing method no matter whether the gender undefined names are excluded or not. 
