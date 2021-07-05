@@ -1,7 +1,8 @@
 [中文ReadMe](https://github.com/jaaack-wang/gender-predicator/blob/main/README.md)
 # Description
-Predicting the gender of given Chinese names. Currently, Navie Bayes based method is provided (with over 93% prediction accuracy). 
-Planning to try other algorithms (e.g., logistic regression) later on.
+Predicting the gender of given Chinese names. Currently, Navie Bayes model and Multi-class Logistic Regression model are provided (with over 93% prediction accuracy). Moreover, both models are trained on the first names instead of full names. 
+
+Also planning to try other algorithms (e.g., shallow nerual network) or re-train the two models based on full names.  
 
 ## Dataset
 The dataset comes from the [Comprehensive Chinese Name Corpus (CCNC)](https://github.com/jaaack-wang/ccnc), which contains 
@@ -12,12 +13,20 @@ For Naive Bayes algorithms, the train and dev sets are combined together
 ([script](https://github.com/jaaack-wang/gender-predicator/blob/main/Naive_Bayes_Gender/char_gender_pair_converter.ipynb)) 
 such that the train set: test set = 8: 2. 
 
-# Naive Bayes 
+For Multi-class Logistic Regression algorithms, the splitting of train/dev/test sets is a bit complicated. Please refer to [train_dev_test_split.ipynb](https://github.com/jaaack-wang/gender-predicator/blob/main/Multiclass_Logistic_Regression_Gender/train_dev_test_split.ipynb) and [model_training_testing.ipynb](https://github.com/jaaack-wang/gender-predicator/blob/main/Multiclass_Logistic_Regression_Gender/model_training_testing.ipynb) to see more details. 
+
+## An issue
+As both models are trained based on the first names, it thus makes a difference to the predication whether the models can retrieve the first names from any given names (either first names or full names). This is because the function used in these two models is dictionary-based max-matching, but some characters used in Chinese first names can also be others' last names. Empirically, the accuracy scores reported below are based on the assumption the models are fed with a list of full names. However, if only first names are provided, the accuracy will go down by around 7%. 
+
+Possible solutions:
+- Re-train the two models based on full names. 
+- Refine the `getFirstName` function with some added-on probility model such that it can retrieve first names more accurately. 
+
+# ONE. Naive Bayes 
 The algorithm is stored in [gender.py](https://github.com/jaaack-wang/gender-predicator/blob/main/Naive_Bayes_Gender/gender.py). You can 
 check [this notebook](https://github.com/jaaack-wang/gender-predicator/blob/main/Naive_Bayes_Gender/gender.ipynb) to see the source code and 
 how it can be used. 
 
-## Assumption
 This method assumes the independence among different features (i.e., charecters) such that 
 [a dictionary](https://github.com/jaaack-wang/gender-predicator/blob/main/Naive_Bayes_Gender/data/dict4Gender.json) 
 containing charecter-gender pair was made based on the combined training set. 
@@ -65,7 +74,7 @@ However, changing the unseen character number appears to make tiny differences f
 ## Accuracy
 The accuracy is tested against the [test set](https://github.com/jaaack-wang/gender-predicator/blob/main/Naive_Bayes_Gender/data/test_ds.txt) 
 which contains over 700k unique full names or over 200k unique first names. You can see the deatiled accuracy test 
-[here](https://github.com/jaaack-wang/gender-predicator/blob/main/Naive_Bayes_Gender/test.ipynb). Basic statistics:
+[here](https://github.com/jaaack-wang/gender-predicator/blob/main/Naive_Bayes_Gender/test.ipynb). Basic statistics (the accuracy score for the train set is comparable, see: [train_set_accuracy.ipynb](https://github.com/jaaack-wang/gender-predicator/blob/main/Naive_Bayes_Gender/train_set_accuracy.ipynb)):
 | Smoothing method | With gender undefined (U) names | Accuracy |
 | :---: | :---: | :---: |
 | Laplace | Yes | 93.7% |
@@ -74,3 +83,55 @@ which contains over 700k unique full names or over 200k unique first names. You 
 | Good Turing  | No | 95.5% |
 
 It appears that both methods work better when the gender undefined examples are excluded from the test set. Moreover, Laplace method works slightly better than Good Turing method no matter whether the gender undefined names are excluded or not. 
+
+# TWO. Multi-class Logistic Regression 
+
+The model is trained based on first names, which are converted into word vectors using one-hot encoding. The word vector also presumes an unseen character that will be used to represent all unseen characters. The gender labels, on the other hand, are encoded with numberical values, 0, 1, 2 to represent M, F and U (undefined) respectively. 
+
+The detailed model training and testing process can be seen in [model_training_testing.ipynb](https://github.com/jaaack-wang/gender-predicator/blob/main/Multiclass_Logistic_Regression_Gender/model_training_testing.ipynb).
+
+## Usage 
+
+Download the repository, and then cd to the [Multiclass_Logistic_Regression_Gender](https://github.com/jaaack-wang/gender-predicator/tree/main/Multiclass_Logistic_Regression_Gender). It is essentially similar to the Naive Bayes Model. The differences are that it does not has `method` paramter in `predict` function and in addition it includes an `accuracy` function. 
+
+Examples:
+```python
+from genderLR import GenderLR
+>>> gender = GenderLR()
+>>> gender.predict('周小窗')
+('周小窗',
+ {'M': 0.9951092205495345,
+  'F': 0.004890690420910213,
+  'U': 8.902955511871448e-08})
+# for a list of names
+>>> names = ['李柔落', '许健康', '黄恺之', '周牧', '梦娜', '爱富']
+>>> gender.predict(names, show_all=False)
+[('李柔落', 'F', 0.7406189716495426),
+ ('许健康', 'M', 0.9999990047182503),
+ ('黄恺之', 'M', 0.9985069564065047),
+ ('周牧', 'M', 0.9939343959114006),
+ ('梦娜', 'F', 0.9999985293819316),
+ ('爱富', 'M', 0.9655679649000578)]
+```
+The use of `accuracy`:
+```python
+# first define a list of example = [list1, list2....] where list = [name, gender]
+from genderLR import GenderLR
+>>> gender = GenderLR()
+>>> examples = [['李柔落', 'F'], ['许健康', 'M'], ['黄恺之', 'M'], ['周牧', 'U'], ['梦娜', 'F'], ['爱富', 'M']]
+>>> gender.accuracy(examples)
+0.8333333333333334
+# To see the mismatched case
+>>> gender.mismatch
+[['name', 'gender', 'pred', 'prob'], 
+['周牧', 'U', 'M', 0.9939343959114006]]
+```
+
+## Accuracy
+Refer to [model_training_testing.ipynb](https://github.com/jaaack-wang/gender-predicator/blob/main/Multiclass_Logistic_Regression_Gender/model_training_testing.ipynb) for details.
+
+| Dataset | train | train | dev1 | dev1 | dev2 | dev2 | test | test |
+| :---: | :---: | :---: |:---: | :---: | :---: |:---: | :---: | :---: |
+| Include Undefined gender | Y | N | Y | N  | Y | N  | Y | N  |
+| Accuracy | 96.2% | 98.0%  | 94.0% | 95.2% | 94.8%  | 96.5% | 94.6% | 97.0% |
+
