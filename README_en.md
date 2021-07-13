@@ -1,8 +1,18 @@
 [中文ReadMe](https://github.com/jaaack-wang/gender-predicator/blob/main/README.md)
 # Description
-Predicting the gender of given Chinese names. Currently, Navie Bayes model and Multi-class Logistic Regression model are provided (with over 93% prediction accuracy). Moreover, both models are trained on the first names instead of full names. 
+Predicting the gender of given Chinese names. Currently, Navie Bayes model and Multi-class Logistic Regression model are provided (with over 93% prediction accuracy). Moreover, both models are trained on the first names and full names. The full-names-trained models can be seen in [Full_Name_Models](https://github.com/jaaack-wang/gender-predicator/tree/main/Full_Name_Models) folder. 
 
-Also planning to try other algorithms (e.g., shallow nerual network) or re-train the two models based on full names.  
+The comparison between the first-names-trained models and the full-names-trained models can be found in [evaluation](https://github.com/jaaack-wang/gender-predicator/tree/main/evaluation) folder. Please note that, when calculating the prediction accuracies, **both types of models do not know whether the inputted names are first names or full names**, unlike the accuracies reported below which were calculated when the first-names-trained models know the types of names inputted (manually set).
+
+## Basic findings
+
+- When the models know the types of names inputted, the first-names-trained models outperform the full-names-trained counterparts by 1%~5% in accuracy. 
+- When the types of names inputted are unknown, the full-names-trained models also outperform the first-names-trained models by 1%~5% in accuracy.
+- The first-names-trained models determine the types of the inputted names by an inbuilt function that uses dictionary-based max-matching approach, which however is unrealiable and causes a great deal of variance because certain Chinese last names can also occur in first names. In this case, the prediction accuracy for full names dataset is 94%～96%, but only 84%～88% for first names dataset. 
+- The full-names-trained models have better performances on first names dataset than full names dataset, which make sense because last names are genderless in the context of Chinese names. 
+- In terms of accuracy, although the first-names-trained models are less stable and have greater variance, they have higher uppper limits than the full-names-trained models. Their accuracy is up to 97%, close to or even better than the human-level performance. 
+- It follows, if a more accurate model that determines the name type (first or full name) can be trained, first-names-trained models are more promising. 
+
 
 ## Dataset
 The dataset comes from the [Comprehensive Chinese Name Corpus (CCNC)](https://github.com/jaaack-wang/ccnc), which contains 
@@ -13,14 +23,8 @@ For Naive Bayes algorithms, the train and dev sets are combined together
 ([script](https://github.com/jaaack-wang/gender-predicator/blob/main/Naive_Bayes_Gender/char_gender_pair_converter.ipynb)) 
 such that the train set: test set = 8: 2. 
 
-For Multi-class Logistic Regression algorithms, the splitting of train/dev/test sets is a bit complicated. Please refer to [train_dev_test_split.ipynb](https://github.com/jaaack-wang/gender-predicator/blob/main/Multiclass_Logistic_Regression_Gender/train_dev_test_split.ipynb) and [model_training_testing.ipynb](https://github.com/jaaack-wang/gender-predicator/blob/main/Multiclass_Logistic_Regression_Gender/model_training_testing.ipynb) to see more details. 
+For Multi-class Logistic Regression algorithms, the splitting of train/dev/test sets is a bit complicated. Given the computational cost, the model was actually only trained on 100k Chinese first names in the end. Please refer to [train_dev_test_split.ipynb](https://github.com/jaaack-wang/gender-predicator/blob/main/Multiclass_Logistic_Regression_Gender/train_dev_test_split.ipynb) and [model_training_testing.ipynb](https://github.com/jaaack-wang/gender-predicator/blob/main/Multiclass_Logistic_Regression_Gender/model_training_testing.ipynb) for see more details. 
 
-## An issue
-As both models are trained based on the first names, it thus makes a difference to the predication whether the models can retrieve the first names from any given names (either first names or full names). This is because the function used in these two models is dictionary-based max-matching, but some characters used in Chinese first names can also be others' last names. Empirically, the accuracy scores reported below are based on the assumption the models are fed with a list of full names. However, if only first names are provided, the accuracy will go down by around 7%. 
-
-Possible solutions:
-- Re-train the two models based on full names. 
-- Refine the `getFirstName` function with some added-on probility model such that it can retrieve first names more accurately. 
 
 # ONE. Naive Bayes 
 The algorithm is stored in [gender.py](https://github.com/jaaack-wang/gender-predicator/blob/main/Naive_Bayes_Gender/gender.py). You can 
@@ -29,7 +33,7 @@ how it can be used.
 
 This method assumes the independence among different features (i.e., charecters) such that 
 [a dictionary](https://github.com/jaaack-wang/gender-predicator/blob/main/Naive_Bayes_Gender/data/dict4Gender.json) 
-containing charecter-gender pair was made based on the combined training set. 
+containing charecter-gender pairs was made based on the combined training set. 
 
 ## Usage
 Download the repository, and then cd to the [Naive_Bayes_Gender](https://github.com/jaaack-wang/gender-predicator/tree/main/Naive_Bayes_Gender).
@@ -57,7 +61,7 @@ from gender import Gender
  ('梦娜', 'F', 0.9995836802664445),
  ('爱富', 'M', 0.9534883720930233)]
 ```
-By default, the Gender().predict() function use Laplace smoothing method (`method='lap'`) to adjust the training set such that a certain 
+By default, the `Gender().predict()` function use Laplace smoothing method (`method='lap'`) to adjust the training set such that a certain 
 probablity is given to unseen charecters, which defaults to 5000. To use Good-Turing smoothing method, add `"method=gt"` as follows:
 ```python
 from gender import Gender
@@ -68,7 +72,7 @@ from gender import Gender
   'F': 0.5265704585272836,
   'U': 2.8845313211183217e-07})
 ```
-To change the number of unseen characters, add a specified integer to Gender() when calling this class, e.g., `gender = Gender(1000)`. 
+To change the number of unseen characters, add a specified integer to `Gender()` when calling this class, e.g., `gender = Gender(1000)`. 
 However, changing the unseen character number appears to make tiny differences for the predictions based on these two smoothing methods. 
 
 ## Accuracy
@@ -92,7 +96,7 @@ The detailed model training and testing process can be seen in [model_training_t
 
 ## Usage 
 
-Download the repository, and then cd to the [Multiclass_Logistic_Regression_Gender](https://github.com/jaaack-wang/gender-predicator/tree/main/Multiclass_Logistic_Regression_Gender). It is essentially similar to the Naive Bayes Model. The differences are that it does not has `method` paramter in `predict` function and in addition it includes an `accuracy` function. 
+Download the repository, and then cd to the [Multiclass_Logistic_Regression_Gender](https://github.com/jaaack-wang/gender-predicator/tree/main/Multiclass_Logistic_Regression_Gender). It is essentially similar to the Naive Bayes Model. The differences are that it does not has `method` parameters in `predict` function and in addition it includes an `accuracy` function. 
 
 Examples:
 ```python
