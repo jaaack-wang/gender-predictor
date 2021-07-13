@@ -60,13 +60,13 @@ class GenderLR:
         else:
             for example in examples:
                 name, gender = example
-            if gender != 'U':
-                _, pred, prob = self.predict(name, show_all=False, full_name=full_name)
-                if gender == pred: 
-                    right += 1
-                else: mismatch.append([name, gender, pred, prob])
-            else:
-                smp_sz -= 1
+                if gender != 'U':
+                    _, pred, prob = self.predict(name, show_all=False, full_name=full_name)
+                    if gender == pred:
+                        right += 1
+                    else: mismatch.append([name, gender, pred, prob])
+                else:
+                    smp_sz -= 1
         
         self.mismatch = mismatch
         return right/smp_sz
