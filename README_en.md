@@ -139,3 +139,24 @@ Refer to [model_training_testing.ipynb](https://github.com/jaaack-wang/gender-pr
 | Include Undefined gender | Y | N | Y | N  | Y | N  | Y | N  |
 | Accuracy | 96.2% | 98.0%  | 94.0% | 95.2% | 94.8%  | 96.5% | 94.6% | 97.0% |
 
+
+## 三、Shallow Neural Networks
+
+I tested three simple neural network models with shallow structures: Bag of Words (BoW); CNN, and LSTM. The train, dev, and test spilt is 0.6: 0.2: 0.2. The training process can be seen in `Neural_Models` folder. You should be able to rerun my scripts (BoW takes about 8 minutes, CNN half hour or so, and LSTM probably around an hour), but you need to instrall [`paddle`](https://github.com/PaddlePaddle/Paddle) and [`paddlenlp`](https://github.com/PaddlePaddle/PaddleNLP). You can also chekc my [text-classification-explained](https://github.com/jaaack-wang/text-classification-explained) repository to learn some common text classification models or figure out how you can use `TensorFlow` or `Pytorch` to do the same job. 
+
+I also re-trained Logistic Regression model, which is slightly different than the one presented above. The basic architecture is similar, but the key difference is that instead of using one-hot encoding, I used dense word embedding to encode the text (100 dimensions versus some thousand dimensions used above), which reduces the computational costs and make it possible to train on the entire dataset. In other word, this Logistic Regression model is very much like training word embeddings for classifying gender of a given Chinese name. 
+
+
+The resulsts (including all genders)：
+
+| 模型| 训练集 | 验证集 | 测试集 |
+| :---: | :---: | :---: |:---: | 
+|BoW| 95.6% | 95.5% | 95.5% | 
+| CNN | 98.0% | 97.5% | 94.0% | 
+| LSTM | 96.2% | 98.0%  | 97.5% |
+| LR | 93.6% | 93.6%  | 93.5% |
+
+Apparently, except LR, the other models outperform previous models shown in 1 and 2, with CNN model being the best (however, as the task is too simple to be discrimative). If the unknown gender is excluded, the results should look even better. The performance of LR slightly goes down, probably because: (1) I used EarlyStopping as a callback to stop overfitting on the train set; the one-hot embeddings literally store embedding for every Chinese character and may thus be slightly more informative then the dense embedding (however at a muuuuch great computational cost); if we only look at the dev and test performance, the difference is small (about 1%).
+
+If you are interested in re-running my code, you can: reduce the train set size, reduce the epoch number, or enlarge the batch size by a few factors, which can speed up training. 
+

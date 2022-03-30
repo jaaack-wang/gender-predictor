@@ -125,7 +125,27 @@ from genderLR import GenderLR
 
 详见 [model_training_testing.ipynb](https://github.com/jaaack-wang/gender-predicator/blob/main/Multiclass_Logistic_Regression_Gender/model_training_testing.ipynb)。
 
-| 数据集 | 训练集 | 训练集 | 测试集1 | 测试集1 | 测试集2 | 测试集2 | 预测集 | 预测集 |
+| 数据集 | 训练集 | 训练集 | 验证集1 | 验证集1 | 验证集2 | 验证集2 | 测试集 | 测试集 |
 | :---: | :---: | :---: |:---: | :---: | :---: |:---: | :---: | :---: |
 | 是否包括未知性别 | 是 | 否 | 是 | 否 | 是 | 否 | 是 | 否 |
 | 准确度 | 96.2% | 98.0%  | 94.0% | 95.2% | 94.8%  | 96.5% | 94.6% | 97.0% |
+
+
+## 三、神经网络模型
+
+简单地试了三种浅层通用的神经网络模型：词袋模型（Bag of Words），卷积神经网络模型（CNN），和LSTM。训练集、验证集和测试集的比例为：60%，20%，和20%。训练过程可见`Neural_Models`文件夹，可以在CPU上直接训练（如果是10个epoch，BoW差不多8分钟，CNN可能需要半小时，LSTM估计一小时左右。。），不过需要预装[`paddle`](https://github.com/PaddlePaddle/Paddle)和[`paddlenlp`](https://github.com/PaddlePaddle/PaddleNLP)。你也可以查看我的[text-classification-explained](https://github.com/jaaack-wang/text-classification-explained)库了解一下一般的文本分类任务是怎么做的，里面也包括了用 `TensorFlow` or `Pytorch`构造模型。
+
+我也顺便重新训练了Logistic Regression。训练方式跟上述的稍有不同，但基本模型构建是差不多的。最主要的差别是，这里没有用独热编码来转换文本，而是用100维的词向量，这样大量减轻了训练成本和速度。换句话说，这里的Logistic Regression更像是训练能区分性别的词向量。
+
+结果如下（包括所有性别）：
+
+| 模型| 训练集 | 验证集 | 测试集 |
+| :---: | :---: | :---: |:---: | 
+|BoW| 95.6% | 95.5% | 95.5% | 
+| CNN | 98.0% | 97.5% | 94.0% | 
+| LSTM | 96.2% | 98.0%  | 97.5% |
+| LR | 93.6% | 93.6%  | 93.5% |
+
+显然，除了LR，其他模型的结果比之前的都稍微要好点（不过由于任务比较简单，模型的区分度不大），CNN的最好。如果把未知性别去掉，结果应该还会稍微提高一点。LR结果之所以下降：我用了earlystopping，所以防止了模型在测试集上过拟；词向量的维度只有100维，比独热编码的好几千维的词向量少很多；如果只看验证集和测试集的结果，其实只差1%左右。
+
+如果有兴趣重新运行我的代码，可以减少训练集的大小，减少epoch，或者几倍地加大batch size，应该会快很多。
