@@ -147,16 +147,28 @@ I tested three simple neural network models with shallow structures: Bag of Word
 I also re-trained Logistic Regression model, which is slightly different than the one presented above. The basic architecture is similar, but the key difference is that instead of using one-hot encoding, I used dense word embedding to encode the text (100 dimensions versus some thousand dimensions used above), which reduces the computational costs and make it possible to train on the entire dataset. In other word, this Logistic Regression model is very much like training word embeddings for classifying gender of a given Chinese name. 
 
 
-The resulsts (including all genders)：
+The results (trained on FIRST names):
 
-| 模型| 训练集 | 验证集 | 测试集 |
-| :---: | :---: | :---: |:---: | 
-|BoW| 95.6% | 95.5% | 95.5% | 
-| CNN | 98.0% | 97.5% | 94.0% | 
-| LSTM | 96.2% | 98.0%  | 97.5% |
-| LR | 93.6% | 93.6%  | 93.5% |
+| Dataset | train | train | dev | dev | test | test |
+| :---: | :---: | :---: |:---: | :---: | :---: | :---: |
+|Include Undefined gender | Y | N  | Y | N  | Y | N  |
+| BoW | 96.2% | 98.7%  | 96.2% | 98.6% | 96.1%  | 98.6% | 
+| CNN | 96.5% | 98.8%  | 96.3% | 98.6% | 96.2%  | 98.7% |
+| LSTM | 96.4% | 98.6%  | 96.2% | 98.6% | 96.2%  | 98.6% |
+| LR | 95.6% | 98.2%  | 95.6% | 98.1% | 95.5%  | 98.2% |
 
-Apparently, except LR, the other models outperform previous models shown in 1 and 2, with CNN model being the best (however, as the task is too simple to be discrimative). If the unknown gender is excluded, the results should look even better. The performance of LR slightly goes down, probably because: (1) I used EarlyStopping as a callback to stop overfitting on the train set; the one-hot embeddings literally store embedding for every Chinese character and may thus be slightly more informative then the dense embedding (however at a muuuuch great computational cost); if we only look at the dev and test performance, the difference is small (about 1%).
 
-If you are interested in re-running my code, you can: reduce the train set size, reduce the epoch number, or enlarge the batch size by a few factors, which can speed up training. 
+The results (trained on FULL names):
 
+| Dataset | train | train | dev | dev | test | test |
+| :---: | :---: | :---: |:---: | :---: | :---: | :---: |
+|Include Undefined gender | Y | N  | Y | N  | Y | N  |
+| BoW | 96.1% | 98.1%  | 95.8% | 97.9% | 95.8%  | 97.9% | 
+| CNN | 96.4% | 98.4%  | 95.7% | 98.0% | 95.8%  | 98.0% |
+| LSTM | 97.4% | 98.9%  | 97.3% | 98.8% | 97.3%  | 98.8% |
+| LR | 93.6% | 96.0%  | 93.6% | 96.0% | 93.6%  | 96.0% |
+
+
+Obviously, models trained (meaning, trained and evaluated, same below) on first names slightly outperform those trained on full names, except for LSTM models, unlike the naive baye models and logistic regression models in the first two sections (more see [evaluation](https://github.com/jaaack-wang/gender-predicator/tree/main/evaluation)). Moreover, these four models also outperform the previous naive baye models and logistic regression models. Except for the LR models, even when trained on full names, BoW，CNN，and LSTM models are still better than the naive baye models and logistic regression models trained on the first names. Just in iterms of these four models trained in this section, LSTM and CNN models are the best (LSTM models are especially good when trained on the full names). BoW models come after and LR models' performance is relatively the lowest. However, since the task is too easy to be discriminative, the difference in the four types of models' performance is small.
+
+If you are interested in re-running my code, you can: reduce the train set size, reduce the epoch number, or enlarge the batch size by a few factors, which can speed up training.
